@@ -1,0 +1,32 @@
+{
+  "name": "svg-templates",
+  "version": "1.0.0",
+  "description": "Takes one or more svg templates and generates modified svg files depending on the provided config paramenters",
+  "main": "index.js",
+  "scripts": {
+    "test": "svg templates test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danaonel/svg-templates.git"
+  },
+  "keywords": [
+    "svg",
+    "templates"
+  ],
+  "author": "Daniela Popescu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/danaonel/svg-templates/issues"
+  },
+  "bin": {
+    "svgtemplates": "bin/svgtemplates.js"
+  },
+  "dependencies": {},
+  "homepage": "https://github.com/danaonel/svg-templates#readme",
+  "devDependencies": {
+    "cheerio": "^0.22.0",
+    "globber": "^0.1.2",
+    "promise": "^7.1.1"
+  }
+}
