@@ -25,7 +25,8 @@
   "dependencies": {
     "cheerio": "^0.22.0",
     "globber": "^0.1.2",
-    "promise": "^7.1.1"
+    "promise": "^7.1.1",
+    "node-fs": "0.1.x"
   },
   "homepage": "https://github.com/danaonel/svg-templates#readme"
 }

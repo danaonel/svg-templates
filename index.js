@@ -1,6 +1,6 @@
 'use strict';
 
-var fs = require( 'fs' );
+var fs = require( 'node-fs' );
 var globber = require( 'globber' )
 var cheerio = require( 'cheerio' );
 var Promise = require('promise');
@@ -33,7 +33,7 @@ function checkDir( who, dir ) {
 
 function createDir( dir ) {
   
-  fs.mkdir( dir, function ( err ) {
+  fs.mkdir( dir, '0777', true, function ( err ) {
       if ( err ) {
         var errMessage = 'Failed to create ' + dir + ' directory'
         console.log( errMessage, err );

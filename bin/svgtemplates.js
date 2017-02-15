@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var fs = require( 'fs' );
+var fs = require( 'node-fs' );
 var svgtemplates = require('../index.js');
 
 var source = process.argv[ 2 ]
