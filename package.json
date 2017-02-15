@@ -22,11 +22,10 @@
   "bin": {
     "svgtemplates": "bin/svgtemplates.js"
   },
-  "dependencies": {},
-  "homepage": "https://github.com/danaonel/svg-templates#readme",
-  "devDependencies": {
+  "dependencies": {
     "cheerio": "^0.22.0",
     "globber": "^0.1.2",
     "promise": "^7.1.1"
-  }
+  },
+  "homepage": "https://github.com/danaonel/svg-templates#readme"
 }
