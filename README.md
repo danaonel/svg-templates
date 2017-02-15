@@ -11,14 +11,14 @@ svgtemplates [path/to/svg/files] [path/to/destination] [path/to/config/file]
 		source: 'path/to/svg/files',
 		dest: 'path/to/destination',
 		config: {
-    	"microphone": {
-      	"fill": "#00FF00"
-    		},
-    	"support": {
-      	"fill": "#FFCC00"
-    	},
-    	"fork": {
-      	"fill": "#CC22CC"
+			"microphone": {
+				"fill": "#00FF00"
+			},
+			"support": {
+				"fill": "#FFCC00"
+			},
+			"fork": {
+				"fill": "#CC22CC"
 			}
 		}
 	});
