@@ -50,9 +50,8 @@ function removeDir( dir ) {
       fs.unlink( file );
     });
     
-    fs.rmdirSync( dir );
-    
   });
+  fs.rmdirSync( dir );
 }
 
 function updateFiles( options ) {
@@ -85,11 +84,9 @@ function updateFiles( options ) {
         
         // Iterate through ID in the config files
         for ( var id in config ) {
-
-          if ( config.hasOwnProperty( id ) ) {
-
+          
+          if( $( '.'+ id ).length > 1 ) {
             var currObj = config[ id ];
-
             // Iterate through properties belonging to current ID in the config file
             for ( var attrb in currObj ) {
 
@@ -108,7 +105,7 @@ function updateFiles( options ) {
 
         fs.writeFile( destination, $.html() , function(err) {
             if (err) throw err;
-            console.log( destinationFile + ' has been updated!!!' );
+            console.log( destinationFile + ' has been generated!!!' );
         });
       });
     });
