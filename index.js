@@ -57,6 +57,8 @@ function removeDir( dir ) {
 
 function updateFiles( options ) {
   
+  //var options = this.options;
+  
   var source = options.source
       , dest = options.dest
       , config = options.config
