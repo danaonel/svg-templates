@@ -24,9 +24,13 @@
   },
   "dependencies": {
     "cheerio": "^0.22.0",
+    "del": "^2.2.2",
     "globber": "^0.1.2",
-    "promise": "^7.1.1",
-    "node-fs": "0.1.x"
+    "lodash": "^4.17.4",
+    "mkdirp": "^0.5.1",
+    "node-fs": "0.1.x",
+    "npmlog": "^4.0.2",
+    "promise": "^7.1.1"
   },
   "homepage": "https://github.com/danaonel/svg-templates#readme"
 }

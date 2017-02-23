@@ -1,119 +1,216 @@
 'use strict';
 
 var fs = require( 'node-fs' );
-var globber = require( 'globber' )
+var npath = require( 'path' );
+var del = require('del');
+var mkdirp = require( 'mkdirp' );
+var globber = require( 'globber' );
 var cheerio = require( 'cheerio' );
-var Promise = require('promise');
+var Promise = require( 'promise' );
+var log = require( './utils/logger' );
 
-function checkDir( who, dir ) {
-  
-  if( who === 'source' ) {
-    
-    fs.stat( dir, function( err, fileStat  ) {
-      if( err ) {
-        console.log( 'Source folder *' + dir + '* does not exist.' );
-        return;
-      } 
-    });
-    
-  }
-  
-  if( who === 'dest' ) {
-    fs.stat( dir, function( err, fileStat  ) {
-      if( err ) {
-        createDir( dir );
-      } else {
-        function removeCreateDir(){
-          return removeDir( dir ).then( createDir( dir ) );
-        }
-      }
-    });
-  }
+var options = {
+  source: null,
+  dest: null,
+  config: {}
 }
 
-function createDir( dir ) {
-  
-  fs.mkdir( dir, '0777', true, function ( err ) {
-      if ( err ) {
-        var errMessage = 'Failed to create ' + dir + ' directory'
-        console.log( errMessage, err );
-      }
-  });
+module.exports = function( args ) {
+  options = Object.assign( {}, args );
+  return init( args );
+};
+
+function init( options ) {
+
+  checkSource()
+  .then( checkDestination )
+  .then( updateFiles );
 
 }
 
-function removeDir( dir ) {
-  
-  globber( dir, (err, path ) => {
-    
-    path.forEach( file => {
-      fs.unlink( file );
-    });
-    
-  });
-  fs.rmdirSync( dir );
-}
-
-function updateFiles( options ) {
-  
-  //var options = this.options;
+function updateFiles() {
   
   var source = options.source
       , dest = options.dest
       , config = options.config
       ;
   
-  // check if source directory exists
-  checkDir( 'source', source );
-  
-  /* check if destination directory exists. 
-    * If no, create new directory
-    * If yes, delete existing directory and create new one. 
-  */
-  checkDir( 'dest', dest );
-  
   globber( source, (err, path ) => {
-    
+
     path.forEach( file => {
-      
-      fs.readFile( file, 'utf8', function( err, fileContents ) {
         
-        if ( err ) throw err;
+      readFile( file )
+        .then( function( data ) {
         
-        var $ = cheerio.load( fileContents );
-        
-        // Iterate through ID in the config files
-        for ( var id in config ) {
-          
-          if( $( '.'+ id ).length > 1 ) {
-            var currObj = config[ id ];
-            // Iterate through properties belonging to current ID in the config file
-            for ( var attrb in currObj ) {
+            var $ = cheerio.load( data );
+            
+            // Iterate through classes in the config files
+            for ( var selector in config ) {
 
-              if ( currObj.hasOwnProperty( attrb ) ) {
+              // Iterate through properties only if selector exists in the file
+              if( $( '.'+ selector ).length > 0 ) {
+                var currObj = config[ selector ];
 
-                $( '#'+ id ).attr( attrb, currObj[ attrb ] );
+                // Iterate through properties belonging to current ID in the config file
+                for ( var attrb in currObj ) {
 
+                  if ( currObj.hasOwnProperty( attrb ) ) {
+
+                    $( '.'+ selector ).attr( attrb, currObj[ attrb ] );
+
+                  }
+                }
               }
             }
-          }
-        }
-        
-        var destinationFile = file.split('/');
-        destinationFile = destinationFile.pop();
-        var destination = dest + '/' + destinationFile;
+            
+            var destPath = file.split( source )
+                , destination
+                ;
 
-        fs.writeFile( destination, $.html() , function(err) {
-            if (err) throw err;
-            console.log( destinationFile + ' has been generated!!!' );
+            destination = npath.join( dest, destPath[ 1 ] );
+
+            createFile( destination, $.html() );
+        
         });
-      });
     });
 
   });
-  
 }
 
-module.exports = function( args ) {
-  return updateFiles( args );
-};
+/* 
+    Check if source directory exists 
+    If source does not exist stop
+*/
+function checkSource() {
+  
+  return new Promise( function ( resolve, reject ) {
+    
+    var path = options.source;
+    
+    fs.stat( path, (err, fileStat ) => {
+      
+      if( err ) {
+        
+        log.error( 'Folder ' + path + ' does not exist.' );
+        
+        return reject( err );
+        
+      } else {
+        
+        return resolve( path );
+        
+      }
+    });
+  });
+}
+
+/* 
+    Check if destination directory exists 
+    If destination does not exist, create it and resolve
+    If destination directory exists, delete it and resolve
+*/
+function checkDestination() {
+    
+    return new Promise( function ( resolve, reject ) {
+      
+        var path = options.dest;
+        
+        fs.stat( path, (err, fileStat ) => {
+          
+          if( err ) {
+              createDir( options.dest )
+              .then( resolve() );
+
+          } else {
+            
+            del( path ).then( function() {
+              resolve() ;
+            });
+            
+          }
+        });
+    });
+}
+
+/*
+    Utilities
+*/
+function createDir( path ) {
+  
+  return new Promise( function ( resolve, reject ) {
+
+      mkdirp( path, function ( err ) {
+
+          if ( err ) return reject( err );
+
+          resolve();
+      });
+  });
+}
+
+function removeDir( path ) {
+  
+  return new Promise( function ( resolve, reject ) {
+    
+    rmdir( path, function (err, dirs, files) {
+      
+      if ( err ) return reject( err );
+
+      resolve();
+      
+    });
+  });
+}
+
+function removeFile( file ) {
+    
+    return new Promise( function( resolve, reject ) {
+
+        fs.unlink( file, ( err ) => {
+
+            if( err ) {
+
+                log.error( 'Could not delete file ' + file + ' !!', err );
+                return reject( err );
+
+            } else {
+
+                log.info( 'Old File ' + file + ' has been deleted!!' );
+                return resolve( file );
+            }
+
+        });
+
+    });
+    
+}
+
+function createFile( file, contents ) {
+  
+    var path = npath.parse( file ).dir;
+  
+    createDir( path )
+    .then( function () {
+      
+      fs.writeFile( file, contents, function ( err ) {
+
+          if ( err ) return log.error( 'File ' + file + ' cannot be created!!' + '\n' + err );
+
+          return log.info( 'New File ' + file + ' has been created!!' );
+      });
+  
+    });
+}
+
+function readFile( file ) {
+
+    return new Promise( function( resolve, reject ) {
+
+        fs.readFile( file, 'utf8', function( err, data ) {
+
+            if ( err ) return reject( err );
+
+            return resolve( data );
+        });
+    });
+}
