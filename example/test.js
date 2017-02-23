@@ -4,16 +4,16 @@ svgtemplates({
   source: 'source/img/svgs',
   dest: 'dist/img/svgs',
   config: {
-    "st-0": {
+    ".st-0": {
       "fill": "#FFFF00"
     },
-    "st-1": {
+    ".st-1": {
       "fill": "#FFCC00"
     },
-    "st-3": {
+    ".st-3": {
       "fill": "#CC22CC"
     },
-    "golf-course": {
+    "#golf-course": {
       "fill": "#CCCCCC"
     }
   }

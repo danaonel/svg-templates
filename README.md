@@ -5,13 +5,13 @@
 #### Example config file
 
 	{
-	  "class1": {
+	  ".class1": {
 	    "fill": "#FFFF00"
 	  },
-	  "class2": {
+	  ".class2": {
 	    "fill": "#FFCC00"
 	  },
-	  "class3": {
+	  "#id": {
 	    "fill": "#CC22CC"
 	  }
 	}
@@ -29,13 +29,13 @@ ____
 		source: 'path/to/svg/files',
 		dest: 'path/to/destination',
 		config: {
-			"class1": {
+			".class1": {
 				"fill": "#00FF00"
 			},
-			"class2": {
+			".class2": {
 				"fill": "#FFCC00"
 			},
-			"class3": {
+			"#id": {
 				"fill": "#CC22CC"
 			}
 		}
@@ -55,13 +55,13 @@ _____
 	      source: 'source/img/svgs',
 	      dest: 'dist/img/svg',
 	      config: {
-	        "class1": {
+	        ".class1": {
 	          "fill": "#FFFF00"
 	        },
-	        "class2": {
+	        ".class2": {
 	          "fill": "#FFCC00"
 	        },
-	        "class3": {
+	        "#id": {
 	          "fill": "#CC22CC"
 	        }
 	      }
@@ -75,6 +75,6 @@ ____
 
 ## What it does
 
-All elements with class specified in the configuration will get new attribute(s) or update existing attribute(s).
+All elements targeted by the selectors specified in the configuration will get new attribute(s) or update existing attribute(s).
 
 The resulting file will be moved to *[path/to/destination]* leaving the original file intact in *[path/to/source/files]*.

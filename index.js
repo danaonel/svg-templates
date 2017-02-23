@@ -48,7 +48,7 @@ function updateFiles() {
             for ( var selector in config ) {
 
               // Iterate through properties only if selector exists in the file
-              if( $( '.'+ selector ).length > 0 ) {
+              if( $( selector ).length > 0 ) {
                 var currObj = config[ selector ];
 
                 // Iterate through properties belonging to current ID in the config file
@@ -56,7 +56,7 @@ function updateFiles() {
 
                   if ( currObj.hasOwnProperty( attrb ) ) {
 
-                    $( '.'+ selector ).attr( attrb, currObj[ attrb ] );
+                    $( selector ).attr( attrb, currObj[ attrb ] );
 
                   }
                 }
