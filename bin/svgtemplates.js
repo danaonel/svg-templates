@@ -2,6 +2,8 @@
 
 var fs = require( 'node-fs' );
 var svgtemplates = require('../index.js');
+var Promise = require( 'promise' );
+var log = require( '../utils/logger' );
 
 var source = process.argv[ 2 ]
     , dest = process.argv[ 3 ]
@@ -12,20 +14,31 @@ var source = process.argv[ 2 ]
 
 
 (function () {
-
-  if( !configFile ) {
-    console.log( 'Please provide a configuration file!' );
-    return;
-  }
-
-  var data = fs.readFileSync( configFile ).toString();
-
-  config = JSON.parse( data );
-  
-  options.source = source;
-  options.dest = dest;
-  options.config = config;
+    
+    readFile( configFile )
+    .then( function( data ) {
+      
+      config = JSON.parse( data );
+      options.source = source;
+      options.dest = dest;
+      svgtemplates( options );
+      
+    })
+    .catch( function() {
+      log.error( 'Please provide a configuration file!!')
+    });
 
 }());
 
-svgtemplates( options );
+function readFile( file ) {
+
+    return new Promise( function( resolve, reject ) {
+
+        fs.readFile( file, 'utf8', function( err, data ) {
+
+            if ( err ) return reject( err );
+
+            return resolve( data );
+        });
+    });
+}
