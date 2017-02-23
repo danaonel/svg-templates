@@ -1,17 +1,20 @@
 var svgtemplates = require('svg-templates');
 
 svgtemplates({
-  source: 'svgs',
-  dest: 'dist/svgs',
+  source: 'source/img/svgs',
+  dest: 'dist/img/svgs',
   config: {
-    "microphone": {
-      "fill": "#00FF00"
+    "st-0": {
+      "fill": "#FFFF00"
     },
-    "support": {
+    "st-1": {
       "fill": "#FFCC00"
     },
-    "fork": {
+    "st-3": {
       "fill": "#CC22CC"
+    },
+    "golf-course": {
+      "fill": "#CCCCCC"
     }
   }
 });
