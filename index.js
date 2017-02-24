@@ -33,46 +33,56 @@ function updateFiles() {
   var source = options.source
       , dest = options.dest
       , config = options.config
+      , updatedFilesPromises = []
+      , filePromise
       ;
   
   globber( source, (err, path ) => {
 
     path.forEach( file => {
+      
+      filePromise = new Promise( function( resolve, reject ) {
         
-      readFile( file )
+        readFile( file )
         .then( function( data ) {
         
-            var $ = cheerio.load( data );
+              var $ = cheerio.load( data );
             
-            // Iterate through classes in the config files
-            for ( var selector in config ) {
+              // Iterate through classes in the config files
+              for ( var selector in config ) {
 
-              // Iterate through properties only if selector exists in the file
-              if( $( selector ).length > 0 ) {
-                var currObj = config[ selector ];
+                // Iterate through properties only if selector exists in the file
+                if( $( selector ).length > 0 ) {
+                  var currObj = config[ selector ];
 
-                // Iterate through properties belonging to current ID in the config file
-                for ( var attrb in currObj ) {
+                  // Iterate through properties belonging to current ID in the config file
+                  for ( var attrb in currObj ) {
 
-                  if ( currObj.hasOwnProperty( attrb ) ) {
+                    if ( currObj.hasOwnProperty( attrb ) ) {
 
-                    $( selector ).attr( attrb, currObj[ attrb ] );
+                      $( selector ).attr( attrb, currObj[ attrb ] );
 
+                    }
                   }
                 }
               }
-            }
             
-            var destPath = file.split( source )
-                , destination
-                ;
+              var destPath = file.split( source )
+                  , destination
+                  ;
 
-            destination = npath.join( dest, destPath[ 1 ] );
+              destination = npath.join( dest, destPath[ 1 ] );
 
-            createFile( destination, $.html() );
+              createFile( destination, $.html() ).then( resolve() );
         
-        });
+          });
+        
+      });
     });
+    
+    updatedFilesPromises.push( filePromise );
+    
+    Promise.all( updatedFilesPromises );
 
   });
 }
@@ -148,44 +158,46 @@ function createDir( path ) {
   });
 }
 
-function removeDir( path ) {
-  
-  return new Promise( function ( resolve, reject ) {
-    
-    rmdir( path, function (err, dirs, files) {
-      
-      if ( err ) return reject( err );
-
-      resolve();
-      
-    });
-  });
-}
-
-function removeFile( file ) {
-    
-    return new Promise( function( resolve, reject ) {
-
-        fs.unlink( file, ( err ) => {
-
-            if( err ) {
-
-                log.error( 'Could not delete file ' + file + ' !!', err );
-                return reject( err );
-
-            } else {
-
-                log.info( 'Old File ' + file + ' has been deleted!!' );
-                return resolve( file );
-            }
-
-        });
-
-    });
-    
-}
+// function removeDir( path ) {
+//
+//   return new Promise( function ( resolve, reject ) {
+//
+//     rmdir( path, function (err, dirs, files) {
+//
+//       if ( err ) return reject( err );
+//
+//       resolve();
+//
+//     });
+//   });
+// }
+//
+// function removeFile( file ) {
+//
+//     return new Promise( function( resolve, reject ) {
+//
+//         fs.unlink( file, ( err ) => {
+//
+//             if( err ) {
+//
+//                 log.error( 'Could not delete file ' + file + ' !!', err );
+//                 return reject( err );
+//
+//             } else {
+//
+//                 log.info( 'Old File ' + file + ' has been deleted!!' );
+//                 return resolve( file );
+//             }
+//
+//         });
+//
+//     });
+//
+// }
 
 function createFile( file, contents ) {
+  
+  return new Promise( function( resolve, reject ) {
   
     var path = npath.parse( file ).dir;
   
@@ -200,6 +212,7 @@ function createFile( file, contents ) {
       });
   
     });
+  });
 }
 
 function readFile( file ) {

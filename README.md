@@ -1,5 +1,13 @@
 # SVG Templates
 
+## What it does
+
+All elements targeted by the selectors specified in the configuration will get new attribute(s) or update existing attribute(s).
+
+The resulting file will be moved to *[path/to/destination]* leaving the original file intact in *[path/to/source/files]*.
+
+The module returns a Promise.
+
 ## CLI Usage
 
 #### Example config file
@@ -73,8 +81,3 @@ ____
 
 	$ gulp
 
-## What it does
-
-All elements targeted by the selectors specified in the configuration will get new attribute(s) or update existing attribute(s).
-
-The resulting file will be moved to *[path/to/destination]* leaving the original file intact in *[path/to/source/files]*.
