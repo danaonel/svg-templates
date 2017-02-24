@@ -158,43 +158,6 @@ function createDir( path ) {
   });
 }
 
-// function removeDir( path ) {
-//
-//   return new Promise( function ( resolve, reject ) {
-//
-//     rmdir( path, function (err, dirs, files) {
-//
-//       if ( err ) return reject( err );
-//
-//       resolve();
-//
-//     });
-//   });
-// }
-//
-// function removeFile( file ) {
-//
-//     return new Promise( function( resolve, reject ) {
-//
-//         fs.unlink( file, ( err ) => {
-//
-//             if( err ) {
-//
-//                 log.error( 'Could not delete file ' + file + ' !!', err );
-//                 return reject( err );
-//
-//             } else {
-//
-//                 log.info( 'Old File ' + file + ' has been deleted!!' );
-//                 return resolve( file );
-//             }
-//
-//         });
-//
-//     });
-//
-// }
-
 function createFile( file, contents ) {
   
   return new Promise( function( resolve, reject ) {
