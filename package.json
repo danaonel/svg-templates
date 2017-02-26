@@ -25,6 +25,7 @@
   "dependencies": {
     "cheerio": "^0.22.0",
     "del": "^2.2.2",
+    "delete": "^0.3.2",
     "globber": "^0.1.2",
     "lodash": "^4.17.4",
     "mkdirp": "^0.5.1",

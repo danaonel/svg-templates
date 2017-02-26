@@ -1,89 +1,72 @@
 'use strict';
 
 var fs = require( 'node-fs' );
-var npath = require( 'path' );
-var del = require('del');
+var path = require( 'path' );
+var del = require('delete');
 var mkdirp = require( 'mkdirp' );
 var globber = require( 'globber' );
 var cheerio = require( 'cheerio' );
 var Promise = require( 'promise' );
 var log = require( './utils/logger' );
 
-var options = {
+const defaults = {
   source: null,
   dest: null,
   config: {}
 }
 
-module.exports = function( args ) {
-  options = Object.assign( {}, args );
-  return init( args );
-};
+module.exports = init;
 
-function init( options ) {
+function init( args ) {
+  
+  const options = Object.assign( {}, defaults, args );
+  
+  return new Promise( function( resolve, reject ) {
 
-  checkSource()
-  .then( checkDestination )
-  .then( updateFiles );
+    checkSource( options.source )
+    .then( () => { checkDestination( options.dest ) })
+    .then( () => { generateFiles( options ) })
+    .then( ( paths ) => { 
+      resolve( paths );
+    });
+    
+  });
 
 }
 
-function updateFiles() {
+function generateFiles( { source, dest, config } ) {
   
-  var source = options.source
-      , dest = options.dest
-      , config = options.config
-      , updatedFilesPromises = []
-      , filePromise
-      ;
+  return new Promise( function ( resolve, reject ) {
+    
+    var updatedFiles = []
   
-  globber( source, (err, path ) => {
-
-    path.forEach( file => {
+    globber( source, (err, paths ) => {
       
-      filePromise = new Promise( function( resolve, reject ) {
-        
-        readFile( file )
-        .then( function( data ) {
-        
-              var $ = cheerio.load( data );
-            
-              // Iterate through classes in the config files
-              for ( var selector in config ) {
+      updatedFiles = paths;
 
-                // Iterate through properties only if selector exists in the file
-                if( $( selector ).length > 0 ) {
-                  var currObj = config[ selector ];
+      const updatedFilesPromises = paths.map( function( file ) {
+      
+        return new Promise( function( resolve, reject ) {
 
-                  // Iterate through properties belonging to current ID in the config file
-                  for ( var attrb in currObj ) {
+          readFile( file )
+          .then( ( data ) => {
+            var fileContent = updateFile( data, config )
+                , srcPathArray = file.split( source )
+                , fileName = srcPathArray[ 1 ]
+                , destination = dest + fileName
+                ;
 
-                    if ( currObj.hasOwnProperty( attrb ) ) {
+            createFile( destination, fileContent, dest ).then( resolve( destination ) );
 
-                      $( selector ).attr( attrb, currObj[ attrb ] );
-
-                    }
-                  }
-                }
-              }
-            
-              var destPath = file.split( source )
-                  , destination
-                  ;
-
-              destination = npath.join( dest, destPath[ 1 ] );
-
-              createFile( destination, $.html() ).then( resolve() );
-        
           });
-        
+        });
       });
     });
-    
-    updatedFilesPromises.push( filePromise );
-    
-    Promise.all( updatedFilesPromises );
-
+  
+    return Promise.all( updatedFilesPromises ).then( updatedFilesPromises => {
+      return resolve( updatedFiles );
+    });
+  
   });
 }
 
@@ -91,23 +74,21 @@ function updateFiles() {
     Check if source directory exists 
     If source does not exist stop
 */
-function checkSource() {
+function checkSource( src ) {
   
   return new Promise( function ( resolve, reject ) {
     
-    var path = options.source;
-    
-    fs.stat( path, (err, fileStat ) => {
+    fs.stat( src, (err, fileStat ) => {
       
       if( err ) {
         
-        log.error( 'Folder ' + path + ' does not exist.' );
+        log.error( 'Folder ' + src + ' does not exist. Please provide a valid source folder.' );
         
         return reject( err );
         
       } else {
         
-        return resolve( path );
+        return resolve( src );
         
       }
     });
@@ -119,41 +100,33 @@ function checkSource() {
     If destination does not exist, create it and resolve
     If destination directory exists, delete it and resolve
 */
-function checkDestination() {
+function checkDestination( dest ) {
+  
+  return new Promise( function ( resolve, reject ) {
     
-    return new Promise( function ( resolve, reject ) {
+    fs.stat( dest, (err, fileStat ) => {
       
-        var path = options.dest;
-        
-        fs.stat( path, (err, fileStat ) => {
-          
-          if( err ) {
-              createDir( options.dest )
-              .then( resolve() );
-
-          } else {
-            
-            del( path ).then( function() {
-              resolve() ;
-            });
-            
-          }
-        });
+      if ( err ) return resolve();
+      
+      del.promise( [ dest ] ).then( () => { return resolve() });
+      
     });
+  });
 }
 
 /*
     Utilities
 */
-function createDir( path ) {
+function createDir( dir ) {
   
   return new Promise( function ( resolve, reject ) {
 
-      mkdirp( path, function ( err ) {
+      mkdirp( dir, function ( err ) {
 
           if ( err ) return reject( err );
-
-          resolve();
+          
+          return resolve( dir );
+          
       });
   });
 }
@@ -162,18 +135,25 @@ function createFile( file, contents ) {
   
   return new Promise( function( resolve, reject ) {
   
-    var path = npath.parse( file ).dir;
+    var dest = path.parse( file ).dir;
   
-    createDir( path )
+    createDir( dest )
     .then( function () {
       
       fs.writeFile( file, contents, function ( err ) {
 
-          if ( err ) return log.error( 'File ' + file + ' cannot be created!!' + '\n' + err );
-
-          return log.info( 'New File ' + file + ' has been created!!' );
+          if ( err ) {
+            
+            log.error( 'File ' + file + ' cannot be created!!' + '\n' + err );
+            return reject();
+            
+          } else {
+            
+            log.info( 'New File ' + file + ' has been created!!' );
+            return resolve();
+            
+          }
       });
-  
     });
   });
 }
@@ -189,4 +169,33 @@ function readFile( file ) {
             return resolve( data );
         });
     });
+}
+
+function updateFile( data, config ) {
+    
+    const $ = cheerio.load( data );
+    let updatedFileContent;
+
+    // Iterate through classes in the config files
+    for ( var selector in config ) {
+
+      // Iterate through properties only if selector exists in the file
+      if( $( selector ).length > 0 ) {
+        var currObj = config[ selector ];
+
+        // Iterate through properties belonging to current ID in the config file
+        for ( var attrb in currObj ) {
+
+          if ( currObj.hasOwnProperty( attrb ) ) {
+
+            $( selector ).attr( attrb, currObj[ attrb ] );
+
+          }
+        }
+      }
+    }
+
+    updatedFileContent = $.html();
+
+    return updatedFileContent;
 }
